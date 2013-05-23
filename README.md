@@ -1,89 +1,30 @@
 lapdftext
 =========
 
-===================================================================
-Instructions on how to test and evaluate the LA-PDFText version 1.7
-===================================================================
+Instructions on how to download, install and run LA-PDFText version 1.7.2
 
 Prerequisites:
 
 The following software must be installed before running the tests in the folder src/test/java
 
-1) Java version 1.6
-2) Maven version 2 
+1. Java version 1.6
+2. Maven version 3.0.x 
 
-===================================================================
-Instructions for running the unit tests
-===================================================================
+Getting, installing and testing the source
+------------------------------------------
 
-1) Change to the directory called LayoutAwarePDFText (the root directory of your project).
-2) Run the following commands in sequence
+1. Fork our parent project: [https://github.com/BMKEG/bmkeg-parent](https://github.com/BMKEG/bmkeg-parent)
+2. Fork the lapdftext repo: [https://github.com/BMKEG/lapdftext](https://github.com/BMKEG/lapdftext) 
+3. Run `mvn package` (this will download all dependencies & run all tests)
+  - Note that some of the tests are a bit funky. We want to have systems that can 
+    watch directories and parse PDFs as they're put into them. This means that there
+    are tests that count over the course of a minute and then add and remove PDF files
+    from watched directories. This is a bit of pain to watch.
+  - to avoid this and just build the code run `mvn -DskipTests package`
+            
+Changes from earlier systems
+---------------------------------
 
-   a) mvn compile 
-      This command will use Maven to compile the project. 
-   b) mvn test
-      - Provided there no errors result from running the command (a) you should see a message saying
-      'Build Success' 
-      - Running the command (b) after this will execute the tests specified in edu.isi.bmkeg.CommandLineToolTest
-      
-      
-===================================================================
-High-level Structure of code base
-===================================================================
-
-1. edu.isi.bmkeg.pdf.scripts.CommandLineTool is first invoked when the user runs the command line version of the system.
-   - This class parses the command line options and 
-   - invokes the main pipeline of the system edu.isi.bmkeg.pdf.pipeline.CommandFitPipeline
-
-2. edu.isi.bmkeg.pdf.pipeline.CommandFitPipeline is made up of 2 components 
-   - Collection reader that iterates over the input folder edu.isi.bmkeg.pdf.pipeline.collectionReader.DirectoryCollectionReader
-   - Analysis engine that runs the code block detection and classification on each PDF file edu.isi.bmkeg.pdf.pipeline.analysisEngine.ParserRuleBasedClassfierAE
-   
-3. edu.isi.bmkeg.pdf.pipeline.analysisEngine.ParserRuleBasedClassfierAE  
-   - This class uses 2 components 
-     -- edu.isi.bmkeg.pdf.parser.RuleBasedParser 
-     	This component is responsible for parsing an input PDF file using the class edu.isi.bmkeg.pdf.extraction.JPedalExtractor. 
-        The result of this process is the instantiation of a list of PageBlocks which are in turn made up of ChunkBlocks containing WordBlocks.
-     -- edu.isi.bmkeg.pdf.classification.ruleBased.RuleBasedChunkClassifier
-        This Component is responsible for classifying the chunk blocks based on its features. 
-     
-===================================================================
-Details by package
-===================================================================
-edu.isi.bmkeg.pdf.extraction - This package contains the code that is responsible for decoding the input PDF using the JPedal Library.
-edu.isi.bmkeg.pdf.model - This package contains the logical model of PDF page structure.
-edu.isi.bmkeg.pdf.model.RTree - This package contains the RTree-based implementation of the logical model of a PDF page. 
-edu.isi.bmkeg.pdf.model.spatial - This package contains a Spatial Representation of blocks detected by the RTree package. It can be seen as assigning interpretation to rectangles. 
-edu.isi.bmkeg.pdf.pipeline - This package contains the main pipeline that is invoked by LA-PDFText. 
-edu.isi.bmkeg.pdf.pipeline.analysisEngine - This package contains the main processing unit that is applied to each pdf file iterated over.
-edu.isi.bmkeg.pdf.pipeline.collectionReader - This package contains the collection reader (iterator) which the pipeline uses to iterate over a directory of PDF files. 
-edu.isi.bmkeg.pdf.scripts - The main class in this package is the CommandLineTool which is run when the user invokes the LA-PDFText command. This class is responsible for parsing the command line arguments and invoking the pipeline. 
-edu.isi.bmkeg.pdf.text - This package contains text IO operations. Specifically, Classes that implement the TextWriter interface are of interest to the end user. These dictate how sections classified by the classification engine are filtered and stitched together to output text representations of the PDF files input.
-edu.isi.bmkeg.pdf.xml - This package contains XML output operations. Specifically, Classes that implement the XMLWriter interface are of interest to the end user. Two XML output formats are supported:
-                        1. OpenAccessXMLWriter - This format conforms to the DTD used by PubmedCentral and is meant for the text from of the article.
-                        2. SpatialXMLWriter - This format is a representation of the word and chunk blocks before they are classified.
-
-
-
-===================================================================
-Instructions for evaluating the performance of the system
-===================================================================
-
-Assumptions:
-
-1. You have created a rule file for the block classification process and have run the LA-PDFText v1.7 software on a collection of PDF files 
-as per the following instructions:
-
-Command: ./LA-PDFText blockifyClassify <inputFolder> <ruleFile> <outputFolder>
-
-Arguments:
-
-    Argument 1: blockifyClassify
-    Argument 2: The directory path where the PDFs are located
-    Argument 3: The path of the rule file for Drools
-    Argument 4: The directory path where output of blockify and sectionify will be placed 
-
-Inspect the <outputFolder> location manually. You will see a collection of image files in the PNG file format produced by LA-PDFText v1.7 (assuming that the PDF files were successfully processed).
-The <outputFolder> will contain one PNG image for each page of each input PDF file contained in <inputFolder>. 
-The mechanism to evaluate the block-prediction accuracy and block-classification accuracy are described in the manuscript associated with this software. 
-
+We no longer use UIMA as the basis of running this code. We would like to include a UIMA
+collection reader to help other UIMA developers iterate over their PDF collections but 
+this is a low priority currently and may be exported to another module. 

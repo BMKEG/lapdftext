@@ -1,0 +1,506 @@
+#created on: Jul 30, 2010
+package edu.isi.bmkeg.pdf.classification.rules
+
+#list any import classes here.
+
+import edu.isi.bmkeg.lapdf.features.ChunkFeatures;
+import edu.isi.bmkeg.lapdf.model.ChunkBlock;
+
+#declare any global variables here
+
+global ChunkBlock    chunk;
+
+
+rule "Title"
+no-loop
+	activation-group "blockClassification"
+	salience 4
+	when
+		    ChunkFeatures(pageNumber==1)
+		    ChunkFeatures(heightDifferenceBetweenChunkWordAndDocumentWord>2)
+		  
+		    eval(chunk.getNumberOfLine()<=6)
+		    ChunkFeatures(allignedMiddle==true)
+		    ChunkFeatures(mostPopularFontModifierBold==true)
+	then 
+		chunk.setType(chunk.TYPE_TITLE);
+		
+end
+
+
+
+rule "Affliation"
+no-loop
+	activation-group "blockClassification"
+	salience 4
+	when
+		    ChunkFeatures(pageNumber==1)
+		    ChunkFeatures(heightDifferenceBetweenChunkWordAndDocumentWord<=2)
+		    ChunkFeatures(heightDifferenceBetweenChunkWordAndDocumentWord>=-2)
+		    eval(chunk.getNumberOfLine()<=4)
+		    ChunkFeatures(allignedMiddle==true)
+		    ChunkFeatures(allCapitals==false)
+		    ChunkFeatures(mostPopularFontModifierBold==false)
+		    
+	then 
+		chunk.setType(chunk.TYPE_AFFLIATION);
+		
+end
+
+rule "keywords"
+no-loop
+activation-group "blockClassification"
+salience 4
+	when
+	    	ChunkFeatures(heightDifferenceBetweenChunkWordAndDocumentWord<=2)
+	    	ChunkFeatures(heightDifferenceBetweenChunkWordAndDocumentWord>=-2)
+	    	eval(chunk.getNumberOfLine()<=2)
+	    	 ChunkFeatures(mostPopularFontModifierBold==true)
+	    	 features:ChunkFeatures()
+		    eval(features.isMatchingRegularExpression("^(Ind|Key)")==true)
+		
+	then
+			chunk.setType(chunk.TYPE_KEYWORDS);
+end 
+
+rule "Authors"
+no-loop
+	activation-group "blockClassification"
+	salience 4
+	when
+		    ChunkFeatures(pageNumber==1)
+		    ChunkFeatures(heightDifferenceBetweenChunkWordAndDocumentWord<=2)
+		    ChunkFeatures(heightDifferenceBetweenChunkWordAndDocumentWord>=0)
+		    eval(chunk.getNumberOfLine()==1)
+		    ChunkFeatures(allignedMiddle==true)
+		    ChunkFeatures(allCapitals==true)
+		    features:ChunkFeatures()
+		    eval(features.isMatchingRegularExpression("^(Summ|[Aa]bst|SUMM|ABST)")==false)
+	then 
+		chunk.setType(chunk.TYPE_AUTHORS);
+		
+end
+
+rule "Abstract Heading"
+no-loop
+activation-group "blockClassification"
+salience 3
+	when
+			ChunkFeatures(pageNumber==1)
+			
+			
+		    eval(chunk.getNumberOfLine()==1)
+		    ChunkFeatures(allignedMiddle==true)
+		    features:ChunkFeatures()
+		    eval(features.isMatchingRegularExpression("^(Summ|[Aa]bst|SUMM|ABST)")==true)
+	then
+            chunk.setType(chunk.TYPE_ABSTRACT_HEADING);
+end
+
+rule "Header"
+no-loop
+activation-group "blockClassification"
+salience 4
+	when
+		 eval(chunk.getNumberOfLine()==1)
+		 ChunkFeatures(containingFirstLineOfPage==true)
+	then
+		 chunk.setType(chunk.TYPE_HEADER);
+end
+
+rule "Footer"
+no-loop
+activation-group "blockClassification"
+salience 4
+	when
+	    	ChunkFeatures(pageNumber==1)
+	    	eval(chunk.getNumberOfLine()==1)
+	    	ChunkFeatures(containingLastLineOfPage==true)
+		
+	then
+			chunk.setType(chunk.TYPE_FOOTER);
+end 
+
+rule "Abstract body"
+no-loop
+activation-group "blockClassification"
+salience 1	
+	when
+	    	ChunkFeatures(pageNumber==1)
+	    	ChunkFeatures(heightDifferenceBetweenChunkWordAndDocumentWord<=2)
+	    	  ChunkFeatures(heightDifferenceBetweenChunkWordAndDocumentWord>=0)
+	    	ChunkFeatures(section=='abstract')
+		
+	then
+			chunk.setType(chunk.TYPE_ABSTRACT_BODY);
+end 
+
+
+
+
+
+rule "Introduction Heading"
+no-loop
+activation-group "blockClassification"
+salience 3
+	when
+	    	ChunkFeatures(heightDifferenceBetweenChunkWordAndDocumentWord>=2)
+	    	 ChunkFeatures(allignedMiddle==false)
+	    	
+	    	 features:ChunkFeatures()
+		    eval(features.isMatchingRegularExpression("^(Intr|INTR)")==true)
+		
+	then
+			chunk.setType(chunk.TYPE_INTRODUCTION_HEADING);
+end 
+
+rule "Introduction Body"
+no-loop
+activation-group "blockClassification"
+salience 1	
+	when
+	    	ChunkFeatures(heightDifferenceBetweenChunkWordAndDocumentWord<=2)
+	    	  ChunkFeatures(heightDifferenceBetweenChunkWordAndDocumentWord>=0)
+	    	ChunkFeatures(allignedMiddle==false)
+	    	ChunkFeatures(allignedWithColumnBoundaries==true)
+	    	ChunkFeatures(chunkTextLength>25)
+	    	(ChunkFeatures(section=="introduction")  or ChunkFeatures(section=="keywords") or ChunkFeatures(section=="abstract"))
+	    	 
+	    	
+		
+	then
+			chunk.setType(chunk.TYPE_INTRODUCTION_BODY);
+end 
+
+
+
+rule "Introduction Subtitle"
+no-loop
+activation-group "blockClassification"
+salience 2	
+	when
+	    	ChunkFeatures(heightDifferenceBetweenChunkWordAndDocumentWord>=1)
+	    	eval(chunk.getNumberOfLine()<=2)
+	    	ChunkFeatures(allignedMiddle==false)
+	    	ChunkFeatures(columnCentered==true)
+	    	ChunkFeatures(section=="introduction")
+	    	
+	then
+			chunk.setType(chunk.TYPE_INTRODUCTION_SUBTITLE);
+end
+
+
+rule "Method Heading"
+no-loop
+activation-group "blockClassification"
+salience 3
+	when
+	    	ChunkFeatures(heightDifferenceBetweenChunkWordAndDocumentWord>=2)
+	    	eval(chunk.getNumberOfLine()==1)
+	    	ChunkFeatures(allignedMiddle==false)
+	    	features:ChunkFeatures()
+		    eval(features.isMatchingRegularExpression("^(MATE|METH|Mate|Meth)")==true)
+	then
+			chunk.setType(chunk.TYPE_METHODS_HEADING);
+end 
+
+rule "Method Subtitle"
+no-loop
+activation-group "blockClassification"
+salience 2	
+	when
+	    	ChunkFeatures(heightDifferenceBetweenChunkWordAndDocumentWord>=1)
+	    	eval(chunk.getNumberOfLine()<=2)
+	    	ChunkFeatures(allignedMiddle==false)
+	    	
+	    	ChunkFeatures(columnCentered==true)
+	    	ChunkFeatures(section=="methods")
+	    	
+	then
+			chunk.setType(chunk.TYPE_METHODS_SUBTITLE);
+end 
+
+rule "Method Body"
+no-loop
+activation-group "blockClassification"
+salience 1	
+	when
+	    	ChunkFeatures(heightDifferenceBetweenChunkWordAndDocumentWord<=2)
+	    	  ChunkFeatures(heightDifferenceBetweenChunkWordAndDocumentWord>=0)
+	    	ChunkFeatures(allignedMiddle==false)
+	    	ChunkFeatures(allignedWithColumnBoundaries==true)
+	    	ChunkFeatures(chunkTextLength>10)
+	    	ChunkFeatures(section=="methods")
+	    	
+	then
+			chunk.setType(chunk.TYPE_METHODS_BODY);
+end 
+
+rule "Result Heading"
+no-loop
+activation-group "blockClassification"
+salience 3
+	when
+	    	ChunkFeatures(heightDifferenceBetweenChunkWordAndDocumentWord>=2)
+	    	eval(chunk.getNumberOfLine()==1)
+	    	ChunkFeatures(allignedMiddle==false)
+	    	features:ChunkFeatures()
+		    eval(features.isMatchingRegularExpression("^(Res|RES|OBS|Obs)")==true)
+	then
+			chunk.setType(chunk.TYPE_RESULTS_HEADING);
+end
+
+rule "Result Body"
+no-loop
+activation-group "blockClassification"
+salience 1	
+	when
+	    	ChunkFeatures(heightDifferenceBetweenChunkWordAndDocumentWord<=2)
+	      ChunkFeatures(heightDifferenceBetweenChunkWordAndDocumentWord>=0)
+	    	ChunkFeatures(allignedMiddle==false)
+	    	ChunkFeatures(allignedWithColumnBoundaries==true)
+	    	ChunkFeatures(chunkTextLength>10)
+	    	ChunkFeatures(section=="results")
+	then
+			chunk.setType(chunk.TYPE_RESULTS_BODY);
+end
+
+rule "Result Subtitle"
+no-loop
+activation-group "blockClassification"
+salience 2	
+	when
+	    	ChunkFeatures(heightDifferenceBetweenChunkWordAndDocumentWord>=1)
+	    	eval(chunk.getNumberOfLine()<=2)
+	    	ChunkFeatures(allignedMiddle==false)
+	    	
+	    	ChunkFeatures(columnCentered==true)
+	    	ChunkFeatures(section=="results")
+	    	
+	then
+			chunk.setType(chunk.TYPE_RESULTS_SUBTITLE);
+end 
+
+rule "Reference Heading"
+no-loop
+activation-group "blockClassification"
+salience 3
+	when
+	    	ChunkFeatures(heightDifferenceBetweenChunkWordAndDocumentWord>=2)
+	    	ChunkFeatures(allignedMiddle==false)
+	    	features:ChunkFeatures()
+		    eval(features.isMatchingRegularExpression("^(Refe|REFE|Lite|LITE)")==true)
+	then
+			chunk.setType(chunk.TYPE_REFERENCES_HEADING);
+end
+
+rule "Reference Body"
+no-loop
+activation-group "blockClassification"
+salience 1	
+	when
+	    	ChunkFeatures(heightDifferenceBetweenChunkWordAndDocumentWord<=-2)
+	    	ChunkFeatures(allignedMiddle==false)
+	    	
+	    	ChunkFeatures(chunkTextLength>10)
+	    	ChunkFeatures(section=="references")
+	then
+			chunk.setType(chunk.TYPE_REFERENCES_BODY);
+end
+
+rule "Discussion Heading"
+no-loop
+activation-group "blockClassification"
+salience 3	
+	when
+	    	ChunkFeatures(heightDifferenceBetweenChunkWordAndDocumentWord>=2)
+	    	eval(chunk.getNumberOfLine()==1)
+	    	ChunkFeatures(allignedMiddle==false)
+	    	features:ChunkFeatures()
+		    eval(features.isMatchingRegularExpression("^(Disc|DISC)")==true)
+	then
+			chunk.setType(chunk.TYPE_DISCUSSION_HEADING);
+end
+
+rule "Discussion Body"
+no-loop
+activation-group "blockClassification"
+salience 1	
+	when
+	    	ChunkFeatures(heightDifferenceBetweenChunkWordAndDocumentWord<=2)
+	    	  ChunkFeatures(heightDifferenceBetweenChunkWordAndDocumentWord>=0)
+	    	ChunkFeatures(allignedMiddle==false)
+	    	ChunkFeatures(allignedWithColumnBoundaries==true)
+	    	ChunkFeatures(chunkTextLength>10)
+	    	ChunkFeatures(section=="discussion")
+	then
+			chunk.setType(chunk.TYPE_DISCUSSION_BODY);
+end
+
+rule "Discussion Subtitle"
+no-loop
+activation-group "blockClassification"
+salience 2	
+	when
+	    	ChunkFeatures(heightDifferenceBetweenChunkWordAndDocumentWord>=1)
+	    	eval(chunk.getNumberOfLine()<=2)
+	    	ChunkFeatures(allignedMiddle==false)
+	    	ChunkFeatures(columnCentered==true)
+	    	ChunkFeatures(section=="discussion")
+	    	
+	then
+			chunk.setType(chunk.TYPE_DISCUSSION_SUBTITLE);
+end
+
+rule "Conclusion Heading"
+no-loop
+activation-group "blockClassification"
+salience 3	
+	when
+	    	ChunkFeatures(heightDifferenceBetweenChunkWordAndDocumentWord>=2)
+	    	eval(chunk.getNumberOfLine()==1)
+	    	ChunkFeatures(allignedMiddle==false)
+	    	features:ChunkFeatures()
+		    eval(features.isMatchingRegularExpression("^(CONC|Conc)")==true)
+	then
+			chunk.setType(chunk.TYPE_CONCLUSIONS_HEADING);
+end
+
+rule "Conclusion Body"
+no-loop
+activation-group "blockClassification"
+salience 1
+	when
+	    	ChunkFeatures(heightDifferenceBetweenChunkWordAndDocumentWord<=2)
+	      ChunkFeatures(heightDifferenceBetweenChunkWordAndDocumentWord>=0)
+	    	ChunkFeatures(allignedMiddle==false)
+	    	ChunkFeatures(allignedWithColumnBoundaries==true)
+	    	ChunkFeatures(chunkTextLength>10)
+	    	ChunkFeatures(section=="conclusions")
+	then
+			chunk.setType(chunk.TYPE_CONCLUSIONS_BODY);
+end
+
+rule "Conclusion Subtitle"
+no-loop
+activation-group "blockClassification"
+salience 2	
+	when
+	    	ChunkFeatures(heightDifferenceBetweenChunkWordAndDocumentWord>=1)
+	    	eval(chunk.getNumberOfLine()<=2)
+	    	ChunkFeatures(allignedMiddle==false)
+	    	ChunkFeatures(columnCentered==true)
+	    	ChunkFeatures(section=="conclusions")
+	    	
+	then
+			chunk.setType(chunk.TYPE_CONCLUSIONS_SUBTITLE);
+end
+
+
+rule "Acknowledgement Heading"
+no-loop
+activation-group "blockClassification"
+salience 3	
+	when
+	    	
+	    	eval(chunk.getNumberOfLine()==1)
+	    	ChunkFeatures(allignedMiddle==false)
+	    	features:ChunkFeatures()
+		    eval(features.isMatchingRegularExpression("^(ACKN|Ackn)")==true)
+	then
+			chunk.setType(chunk.TYPE_ACKNOWLEDGEMENTS_HEADING);
+end
+
+rule "Acknowledgement Body"
+no-loop
+activation-group "blockClassification"
+salience 1
+	when
+	    	ChunkFeatures(heightDifferenceBetweenChunkWordAndDocumentWord<=2)
+	    	  ChunkFeatures(heightDifferenceBetweenChunkWordAndDocumentWord>=0)
+	    	ChunkFeatures(allignedMiddle==false)
+	    	ChunkFeatures(allignedWithColumnBoundaries==true)
+	    	ChunkFeatures(chunkTextLength>10)
+	    	ChunkFeatures(section=="acknowledgements")
+	then
+			chunk.setType(chunk.TYPE_ACKNOWLEDGEMENTS_BODY);
+end
+
+rule "Figure Legend 1"
+no-loop
+activation-group "blockClassification"
+salience 4	
+	when
+		ChunkFeatures(heightDifferenceBetweenChunkWordAndDocumentWord<=-1)
+		features:ChunkFeatures()
+		eval(features.isMatchingRegularExpression("^Fig")==true)
+	then
+		chunk.setType(chunk.TYPE_FIGURE_LEGEND);
+end
+
+rule "Figure Legend 2"
+no-loop
+activation-group "blockClassification"
+salience 4	
+	when
+		ChunkFeatures(heightDifferenceBetweenChunkWordAndDocumentWord<=-1)
+	    ChunkFeatures(lastClassification=="figureLegend")
+	    ChunkFeatures(chunkTextLength>30)
+	then
+		chunk.setType(chunk.TYPE_FIGURE_LEGEND);
+end
+
+rule "Figure Legend 3"
+no-loop
+activation-group "blockClassification"
+salience 4	
+	when
+		ChunkFeatures(heightDifferenceBetweenChunkWordAndDocumentWord<=-1)
+	    features:ChunkFeatures()
+		eval(features.hasNeighboursOfType("figureLegend",features.WEST)==true)
+	   
+	    
+	then
+		chunk.setType(chunk.TYPE_FIGURE_LEGEND);
+end
+
+rule "Table 1"
+no-loop
+activation-group "blockClassification"
+salience 4
+	when
+		ChunkFeatures(heightDifferenceBetweenChunkWordAndDocumentWord<=-2)
+	    eval(chunk.getNumberOfLine()==1)
+	    features:ChunkFeatures()
+		eval(features.isMatchingRegularExpression("^(Tab|TABL|A\\s*bbr)")==true)
+	   
+	    
+	then
+		chunk.setType(chunk.TYPE_TABLE);
+end
+
+rule "Table 2"
+no-loop
+activation-group "blockClassification"
+salience 4
+	when
+		ChunkFeatures(heightDifferenceBetweenChunkWordAndDocumentWord<-2)
+	    ChunkFeatures(lastClassification=="table")
+	    
+	then
+		chunk.setType(chunk.TYPE_TABLE);
+end
+
+rule "citation"
+no-loop
+activation-group "blockClassification"
+salience 4
+	when
+		 ChunkFeatures(pageNumber==1)
+	    features:ChunkFeatures()
+		eval(features.isMatchingRegularExpression("JOURNAL OF COMPARATIVE NEUROLOGY")==true)
+	    
+	then
+		chunk.setType(chunk.TYPE_CITATION);
+end
+

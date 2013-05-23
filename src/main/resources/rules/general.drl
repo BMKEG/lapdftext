@@ -1,0 +1,94 @@
+#created on: Jul 30, 2010
+package edu.isi.bmkeg.pdf.classification.rules
+
+#list any import classes here.
+
+import edu.isi.bmkeg.lapdf.features.ChunkFeatures;
+import edu.isi.bmkeg.lapdf.model.ChunkBlock;
+
+#declare any global variables here
+
+global ChunkBlock    chunk;
+
+rule "Title"
+	activation-group "blockClassification"
+	salience 4
+	when
+		    ChunkFeatures(pageNumber==1)
+		    ChunkFeatures(heightDifferenceBetweenChunkWordAndDocumentWord>8)	  
+		    ChunkFeatures(alignedMiddle==true)
+	then 
+		chunk.setType(chunk.TYPE_TITLE);
+end
+
+rule "body"
+	activation-group "blockClassification"
+	salience 4
+	when
+		    ChunkFeatures(mostPopularFontInDocument==true)
+		    ChunkFeatures(alignedWithColumnBoundaries==true)
+	then 
+		chunk.setType(chunk.TYPE_BODY);
+end
+
+rule "body2"
+	activation-group "blockClassification"
+	salience 4
+	when
+		    ChunkFeatures(nextMostPopularFontInDocument==true)
+		    ChunkFeatures(alignedWithColumnBoundaries==true)
+	then 
+		chunk.setType(chunk.TYPE_BODY);
+end
+
+rule "heading"
+	activation-group "blockClassification"
+	salience 3
+	when
+		    ChunkFeatures(withinBodyTextFrame==true)
+			ChunkFeatures(alignedWithColumnBoundaries==true)
+		    eval(chunk.readNumberOfLine()<=3)
+	then 
+		chunk.setType(chunk.TYPE_HEADING);
+end
+
+rule "figure-legend"
+	activation-group "blockClassification"
+	salience 4
+	when
+		    ChunkFeatures(mostPopularFontInDocument==false)
+		    eval(chunk.isMatchingRegularExpression("^(Figure \\d+|FIGURE \\d+)")==true)
+	then 
+		chunk.setType(chunk.TYPE_FIGURE_LEGEND);
+end
+
+rule "figure-legend2"
+	activation-group "blockClassification"
+	salience 4
+	when
+		    eval(chunk.isUnderOneLineFlushNeighboursOfType(chunk.TYPE_FIGURE_LEGEND)==true)
+	then 
+		chunk.setType(chunk.TYPE_HEADING);
+end
+
+rule "Header"
+activation-group "blockClassification"
+salience 4
+	when
+			eval(chunk.readNumberOfLine()==1)
+		 ChunkFeatures(containingFirstLineOfPage==true)
+	then
+		 chunk.setType(chunk.TYPE_HEADER);
+end
+
+rule "Footer"
+activation-group "blockClassification"
+salience 4
+	when
+	    	
+	    	eval(chunk.readNumberOfLine()==1)
+	    	ChunkFeatures(containingLastLineOfPage==true)
+		
+	then
+			chunk.setType(chunk.TYPE_FOOTER);
+end 

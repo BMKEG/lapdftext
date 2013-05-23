@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<collectionReaderDescription xmlns="http://uima.apache.org/resourceSpecifier">
+  <frameworkImplementation>org.apache.uima.java</frameworkImplementation>
+  <implementationName>edu.isi.bmkeg.pdf.pipeline.collectionReader.DirectoryCollectionReader</implementationName>
+  <processingResourceMetaData>
+    <name>Directory Collection Reader</name>
+    <description>Meant for reading the names of a list of files</description>
+    <version>1.0</version>
+    <vendor>BMKEG</vendor>
+    <configurationParameters>
+      <configurationParameter>
+        <name>Directory</name>
+        <description>parent directory where the files are</description>
+        <type>String</type>
+        <multiValued>false</multiValued>
+        <mandatory>true</mandatory>
+      </configurationParameter>
+      <configurationParameter>
+        <name>RecurseIntoDirectoryStructure</name>
+        <description>parent directory where the files are</description>
+        <type>Boolean</type>
+        <multiValued>false</multiValued>
+        <mandatory>true</mandatory>
+      </configurationParameter>
+      <configurationParameter>
+        <name>FileSuffix</name>
+        <description>suffix of file</description>
+        <type>String</type>
+        <multiValued>true</multiValued>
+        <mandatory>true</mandatory>
+      </configurationParameter>
+    </configurationParameters>
+    <configurationParameterSettings>
+      <nameValuePair>
+        <name>Directory</name>
+        <value>
+          <string>blah/blah</string>
+        </value>
+      </nameValuePair>
+      <nameValuePair>
+        <name>RecurseIntoDirectoryStructure</name>
+        <value>
+          <boolean>true</boolean>
+        </value>
+      </nameValuePair>
+      <nameValuePair>
+        <name>FileSuffix</name>
+        <value>
+          <array>
+            <string>.pdf</string>
+          </array>
+        </value>
+      </nameValuePair>
+    </configurationParameterSettings>
+    <typeSystemDescription>
+      <imports>
+        <import location="../typeSystem/LAPDFTextTypeSystemDescriptor.xml"/>
+      </imports>
+    </typeSystemDescription>
+    <typePriorities/>
+    <fsIndexCollection/>
+    <capabilities/>
+    <operationalProperties>
+      <modifiesCas>true</modifiesCas>
+      <multipleDeploymentAllowed>false</multipleDeploymentAllowed>
+      <outputsNewCASes>false</outputsNewCASes>
+    </operationalProperties>
+  </processingResourceMetaData>
+  <resourceManagerConfiguration/>
+</collectionReaderDescription>
